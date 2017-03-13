@@ -36,18 +36,23 @@ exec (CompoundStm stm rest) env = do
   exec stm env
   exec rest env
 exec (AssignStm id exp) env = do
-  d <- readSTRef env
-  let value = eval exp d
+  value <- eval exp env
   modifySTRef env (insert id value)
   pure value
-exec (PrintStm exps) env = pure (-1) -- (-1) -- not implemented yet!
+exec (PrintStm exps) env = pure (-1) -- not implemented yet!
 
-eval :: Exp -> Environment -> Int
-eval (IdExp id) env = fromMaybe (-1) (lookup id env)
-eval (NumExp n) env = n
-eval (OpExp l op r) env = eval l env + eval r env -- TODO: Incomplete!
-eval (EseqExp stm exp) env = eval exp empty -- uggggg I forgot about this one. What a dumb idea! Now I have to lift this into State Exec as well!
-  
+eval :: forall eff st.Exp -> STRef st (Map String Int) -> Eff (st :: ST st | eff) Int 
+eval (IdExp id) env = do
+  d <- readSTRef env
+  pure $ fromMaybe (-1) (lookup id d)
+eval (NumExp n) env = pure $ n
+eval (OpExp l op r) env = do
+  lval <- eval l env
+  rval <- eval r env
+  pure (lval + rval) -- TODO: Incomplete!
+eval (EseqExp stm exp) env = do
+  exec stm env
+  eval exp env
 
 prog :: Stm
 prog = CompoundStm

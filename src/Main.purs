@@ -12,7 +12,14 @@ statements _ = 0
 main :: forall e ques. Eff (console :: CONSOLE, st :: ST ques | e) Unit
 main = do
   logShow (encap 12)
-  logShow (statements $ parseR "let s = 'roundtrip'; console.log(s)")
+  logShow (statements $ parseR ("function f(a: int, b: int, c: int) {"
+                                <> "print_int(a + c);"
+                                <> "let j = a + b;"
+                                <> "let a = 'hello';"
+                                <> "print(a);"
+                                <> "print_int(j);"
+                                <> "print_int(b);"
+                                <> "}"))
 encap :: Int -> Int
 encap n = pureST do
   r <- newSTRef n

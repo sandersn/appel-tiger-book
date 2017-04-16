@@ -6,7 +6,7 @@ import Control.Monad.Except (runExcept)
 
 import Data.Foreign (F, Foreign, readArray, readBoolean, readNumber, readString, readInt) -- , readNullOrUndefined)
 import Data.Foreign.Index ((!))
--- import Data.Traversable (traverse)
+import Data.Traversable (traverse)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Chapter4
@@ -47,4 +47,17 @@ readFunction :: Foreign -> F FunDec
 readFunction o = do
   nameId <- o ! "name"
   name <- nameId ! "text" >>= readString
-  pure $ { name, params: [], result: Just "What", body: NilExp }
+  body <- o ! "body"
+  statements <- o ! "statements" >>= readArray >>= traverse readExp                
+  pure $ { name, params: [], result: Just "What", body: SeqExp statements }
+readExp o = do
+  kind <- o ! "kind" >>= readInt
+  readExp' kind o
+readExp' 209 o = o ! "expression" >>= readExp -- StatementExpression
+readExp' 180 o = do
+  -- expression might not be an identifier of course
+  exp <- o ! "expression"
+  func <- exp ! "text" >>= readString
+  args <- o ! "arguments" >>= readArray >>= traverse readExp
+  pure $ CallExp { func, args }
+readExp' _ _ = pure $ NilExp

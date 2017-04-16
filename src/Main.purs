@@ -1,13 +1,14 @@
 module Main where
 
-import Typescript (Node(..), parseR)
-import Prelude
+import Typescript (parseR)
+import Prelude (Unit, bind, ($), (+), (<>))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, logShow)
 import Control.Monad.ST (ST, newSTRef, readSTRef, pureST, modifySTRef)
 import Data.Array (length)
-statements :: Node -> Int
-statements (SourceFile ss) = length ss
+import Chapter4
+statements :: Dec -> Int
+statements (FunctionDec ss) = length ss
 statements _ = 0
 main :: forall e ques. Eff (console :: CONSOLE, st :: ST ques | e) Unit
 main = do

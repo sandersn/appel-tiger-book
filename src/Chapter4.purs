@@ -30,5 +30,5 @@ data Dec = FunctionDec (Array FunDec)
 data Ty = NameTy Symbol
         | RecordTy (Array Field)
         | ArrayTy Symbol
-type Field = { name :: Symbol, escape :: Boolean, yyp :: Symbol }
+type Field = { name :: Symbol, escape :: Boolean, typ :: Symbol }
 type FunDec = { name :: Symbol, params :: Array Field, result :: Maybe Symbol, body :: Exp }

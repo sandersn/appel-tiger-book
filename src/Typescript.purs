@@ -8,6 +8,7 @@ import Data.Foreign (F, Foreign, readArray, readBoolean, readNumber, readString,
 import Data.Foreign.Index ((!))
 -- import Data.Traversable (traverse)
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Chapter4
 
 foreign import parse :: String -> Foreign
@@ -22,7 +23,9 @@ readDec o = do
 readDec' 264 o = readSourceFile o
 readDec' 207 o = pure $ FunctionDec []
 readDec' 209 o = pure $ FunctionDec []
-readDec' 227 o = readFunction o
+readDec' 227 o = do
+  fundec <- readFunction o
+  pure $ FunctionDec [fundec]
 readDec' _ _ = pure $ FunctionDec []
 
 fromEither :: forall a b. b -> Either a b -> b
@@ -34,13 +37,14 @@ fromEither y _ = y
 readSourceFile :: Foreign -> F Dec
 readSourceFile o = do
   stmts <- o ! "statements" >>= readArray
+  -- TODO: Should actually read as many functions as possible, then return a single FunctionDec wrapping them
+  -- this would better approximate Tiger's ML-like structure
   badDefault stmts
 badDefault :: Array Foreign -> F Dec
 badDefault [x] = readDec x
 badDefault _ = pure $ FunctionDec []
-readFunction :: Foreign -> F Dec
+readFunction :: Foreign -> F FunDec
 readFunction o = do
-  pure $ FunctionDec [] -- ha ha. very fake.
-                
-    
-
+  nameId <- o ! "name"
+  name <- nameId ! "text" >>= readString
+  pure $ { name, params: [], result: Just "What", body: NilExp }
